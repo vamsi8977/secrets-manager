@@ -27,14 +27,14 @@ resource "aws_iam_policy" "secretsmanager" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = [
+        Effect = "Allow",
+        Action = [
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret",
           "kms:Decrypt",
           "kms:DescribeKey"
         ],
-        Resource = aws_secretsmanager_secret.secretsmanager.arn
+        Resource = module.secrets_manager.secret_arn
       }
     ]
   })
@@ -44,42 +44,41 @@ resource "aws_iam_policy" "secretsmanager" {
 resource "aws_iam_role_policy_attachment" "secretsmanager" {
   role       = aws_iam_role.secretsmanager.name
   policy_arn = aws_iam_policy.secretsmanager.arn
-  depends_on = [ aws_iam_policy.secretsmanager ]
+  depends_on = [aws_iam_policy.secretsmanager]
 }
 
 # ======================================================
 # KMS Key for Secrets Manager
 # ======================================================
 
-# This KMS key is used to encrypt the secrets in Secrets Manager
-resource "aws_kms_key" "secretsmanager" {
-  description = "${var.aws_region}-${var.environment}-secretsmanager-key"
-  key_usage   = "ENCRYPT_DECRYPT"
-  enable_key_rotation = true
+# This module creates a KMS key for encrypting the secret in Secrets Manager
+module "kms" {
+  source                  = "terraform-aws-modules/kms/aws"
+  version                 = "3.1.1"
+  description             = "The KMS key for Secrets Manager."
+  key_usage               = "ENCRYPT_DECRYPT"
   deletion_window_in_days = 7
+  enable_key_rotation     = true
+  key_administrators      = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
   tags = {
-    name        = "${var.aws_region}-${var.environment}-kms-key"
+    name = "${var.aws_region}-${var.environment}-kms-key"
   }
-  policy      = jsonencode({
+  aliases = ["alias/${var.aws_region}-${var.environment}-kms-key"]
+  aliases_use_name_prefix = true
+  policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid = "Enable IAM User Permissions",
+        Sid    = "Enable IAM User Permissions",
         Effect = "Allow",
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         },
-        Action = "kms:*",
+        Action   = "kms:*",
         Resource = "*"
       }
     ]
   })
-}
-
-# This alias is used to reference the KMS key in Secrets Manager
-resource "aws_kms_alias" "secretsmanager" {
-  name          = "alias/${var.aws_region}-${var.environment}-secretsmanager"
-  target_key_id = aws_kms_key.secretsmanager.key_id
 }
 
 # ======================================================
@@ -87,20 +86,14 @@ resource "aws_kms_alias" "secretsmanager" {
 # ======================================================
 
 # This resource creates a secret in AWS Secrets Manager
-resource "aws_secretsmanager_secret" "secretsmanager" {
-  name = "${var.aws_region}-${var.environment}-secretsmanager"
-  kms_key_id = aws_kms_alias.secretsmanager.arn
-  lifecycle {
-    prevent_destroy = false
-  }
-  depends_on = [ aws_kms_key.secretsmanager, aws_kms_alias.secretsmanager ]
-}
-
-# This resource creates a version of the secret in AWS Secrets Manager
-resource "aws_secretsmanager_secret_version" "secretsmanager" {
-  secret_id = aws_secretsmanager_secret.secretsmanager.id
+module "secrets_manager" {
+  source  = "terraform-aws-modules/secrets-manager/aws"
+  version = "1.3.1"
+  name    = "${var.aws_region}-${var.environment}-secretsmanager"
+  description = "The secret for Secrets Manager."
+  recovery_window_in_days = 7
+  kms_key_id = module.kms.key_id
   secret_string = jsonencode({
-    Environment = "var.environment"
+    Environment = var.environment
   })
-  depends_on = [ aws_secretsmanager_secret.secretsmanager ]
 }

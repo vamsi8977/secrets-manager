@@ -1,10 +1,15 @@
-# AWS Secrets Manager
+# AWS Secrets Manager 
+# AWS Key Management Service
 
 * Centrally manage the lifecycle of secrets
+* AWS managed service that makes it easy for you to create and control the encryption keys that are used to encrypt your data
 
 ## Additional Resources
 
 - [Amazon Secrets Manager User Guide](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html)
+- [Amazon KMS Key User Guide](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)
+- [Terraform AWS KMS Module Documentation](https://registry.terraform.io/modules/terraform-aws-modules/kms/aws/latest)
+- [Terraform AWS Secrets Manager Module Documentation](https://registry.terraform.io/modules/terraform-aws-modules/secrets-manager/aws/latest)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -22,7 +27,10 @@
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_kms"></a> [kms](#module\_kms) | terraform-aws-modules/kms/aws | 3.1.1 |
+| <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | terraform-aws-modules/secrets-manager/aws | 1.3.1 |
 
 ## Resources
 
@@ -31,10 +39,6 @@ No modules.
 | [aws_iam_policy.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_role.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
-| [aws_kms_alias.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
-| [aws_kms_key.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_secretsmanager_secret.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
-| [aws_secretsmanager_secret_version.secretsmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 
 ## Inputs
