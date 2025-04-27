@@ -49,5 +49,5 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_secretsmanager_name"></a> [secretsmanager\_name](#output\_secretsmanager\_name) | n/a |
+| <a name="output_secretsmanager_name"></a> [secretsmanager\_name](#output\_secretsmanager\_name) | The name of the Secrets Manager secret. |
 <!-- END_TF_DOCS -->
